@@ -17,7 +17,10 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
-var player, cursors, grounds, ground, spikes;
+var player, cursors, grounds, ground, spikes, lifeBar;
+let life = 10;
+// 扣血的 trigger
+let isHurtOnce = false;
 let groundCollision = {
   none: false,
   up: true,
@@ -57,7 +60,8 @@ function create() {
     el.body.checkCollision = groundCollision;
   });
   spikes = this.physics.add.staticGroup();
-  this.physics.add.collider(player, spikes);
+  // 加上碰撞後的callback
+  this.physics.add.collider(player, spikes, hurt, null, this);
   for (let i = 0; i < 20; i++) {
     spikes
       .create(0 + 30 * i, 0, "spikes")
@@ -65,6 +69,13 @@ function create() {
       .setOrigin(0, 0);
   }
   cursors = this.input.keyboard.createCursorKeys();
+  lifeBar = [];
+  for (let i = 0; i < 10; i++) {
+    let aLife = this.add.rectangle(20 + 15 * i, 55, 10, 30, "0x00ee00");
+    // 將生命值設定在前方
+    aLife.setDepth(1);
+    lifeBar.push(aLife);
+  }
 }
 function update() {
   if (cursors.left.isDown) {
@@ -104,4 +115,27 @@ function update() {
       ground.body.checkCollision = groundCollision;
     }
   });
+  lifeBar.forEach((el, idx) => {
+    if (idx + 1 > life) {
+      el.fillColor = "0x555555";
+    } else {
+      el.fillColor = "0x00ee00";
+    }
+  });
+  // 碰觸完尖刺也做完扣血機制後，恢復主角與下方的碰撞偵測
+  if (!player.body.touching.up) {
+    player.body.checkCollision.down = true;
+  }
+}
+
+// 扣血機制的callback
+function hurt(player, spike) {
+  // 生命值在 trigger 開啟時扣 4
+  life -= isHurtOnce ? 0 : 4;
+  // 被尖刺碰到後，移除主角與下方的碰撞偵測，已讓她脫離目前的樓梯
+  player.body.checkCollision.down = false;
+  // 關閉 trigger
+  isHurtOnce = true;
+  // 1秒後再次開啟 trigger
+  setTimeout(() => (isHurtOnce = false), 1000);
 }
