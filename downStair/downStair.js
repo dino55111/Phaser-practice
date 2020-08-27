@@ -17,7 +17,14 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
-
+var player, cursors, grounds, ground, spikes;
+let groundCollision = {
+  none: false,
+  up: true,
+  down: false,
+  left: false,
+  right: false,
+};
 function preload() {
   this.load.image("bg", "assets/background.png");
   this.load.image("ground", "assets/ground_grass.png");
@@ -45,6 +52,10 @@ function create() {
   grounds.create(300, 600, "ground").setScale(0.5);
   grounds.create(500, 800, "ground").setScale(0.5);
   grounds.create(400, 1000, "ground").setScale(0.5);
+  grounds.getChildren().forEach((el) => {
+    el.body.immovable = true;
+    el.body.checkCollision = groundCollision;
+  });
   spikes = this.physics.add.staticGroup();
   this.physics.add.collider(player, spikes);
   for (let i = 0; i < 20; i++) {
@@ -76,6 +87,7 @@ function update() {
     player.setFrame(0);
   }
   grounds.getChildren().forEach((el) => el.setVelocityY(-100));
+
   grounds.getChildren().forEach((el) => {
     if (el.y < 0) {
       el.destroy();
@@ -87,6 +99,9 @@ function update() {
           "ground"
         )
         .setScale(0.5);
+      //加上不被移動以及只有上方的物理碰撞偵測
+      ground.body.immovable = true;
+      ground.body.checkCollision = groundCollision;
     }
   });
 }
