@@ -5,7 +5,7 @@ var config = {
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 0 },
+      gravity: { y: 500 },
       debug: false,
     },
   },
@@ -53,5 +53,40 @@ function create() {
       .setScale(0.5)
       .setOrigin(0, 0);
   }
+  cursors = this.input.keyboard.createCursorKeys();
 }
-function update() {}
+function update() {
+  if (cursors.left.isDown) {
+    player.setVelocityX(-160);
+
+    player.flipX = true;
+
+    player.anims.play("walking", true);
+  } else if (cursors.right.isDown) {
+    player.setVelocityX(160);
+
+    player.flipX = false;
+
+    player.anims.play("walking", true);
+  } else {
+    player.setVelocityX(0);
+
+    player.anims.stop("walking");
+
+    player.setFrame(0);
+  }
+  grounds.getChildren().forEach((el) => el.setVelocityY(-100));
+  grounds.getChildren().forEach((el) => {
+    if (el.y < 0) {
+      el.destroy();
+
+      ground = grounds
+        .create(
+          Phaser.Math.Between(0, 600),
+          Phaser.Math.Between(1200, 1250),
+          "ground"
+        )
+        .setScale(0.5);
+    }
+  });
+}
