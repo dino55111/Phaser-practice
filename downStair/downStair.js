@@ -49,15 +49,18 @@ function create() {
     repeat: -1,
   });
   grounds = this.physics.add.group();
-  this.physics.add.collider(player, grounds);
+  // 加上碰撞後的callback
+  this.physics.add.collider(player, grounds, heal, null, this);
   grounds.create(100, 200, "ground").setScale(0.5);
   grounds.create(200, 400, "ground").setScale(0.5);
   grounds.create(300, 600, "ground").setScale(0.5);
   grounds.create(500, 800, "ground").setScale(0.5);
   grounds.create(400, 1000, "ground").setScale(0.5);
+
   grounds.getChildren().forEach((el) => {
     el.body.immovable = true;
     el.body.checkCollision = groundCollision;
+    el.isHeal = false;
   });
   spikes = this.physics.add.staticGroup();
   // 加上碰撞後的callback
@@ -113,6 +116,7 @@ function update() {
       //加上不被移動以及只有上方的物理碰撞偵測
       ground.body.immovable = true;
       ground.body.checkCollision = groundCollision;
+      ground.isHeal = false;
     }
   });
   lifeBar.forEach((el, idx) => {
@@ -138,4 +142,11 @@ function hurt(player, spike) {
   isHurtOnce = true;
   // 1秒後再次開啟 trigger
   setTimeout(() => (isHurtOnce = false), 1000);
+}
+
+function heal(player, ground) {
+  // 確認是否滿血並且樓梯沒有被踩過補過血
+  life += life === 10 || ground.isHeal ? 0 : 1;
+  // 補完把屬性轉成 true
+  ground.isHeal = true;
 }
