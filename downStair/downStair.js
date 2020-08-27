@@ -17,7 +17,7 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
-var player, cursors, grounds, ground, spikes, lifeBar, scoreText;
+var player, cursors, grounds, ground, spikes, lifeBar, scoreText, button;
 let life = 10;
 // 扣血的 trigger
 let isHurtOnce = false;
@@ -31,6 +31,9 @@ let groundCollision = {
   left: false,
   right: false,
 };
+// 遊戲是否進行的 trigger
+let startGame = false;
+
 function preload() {
   this.load.image("bg", "assets/background.png");
   this.load.image("ground", "assets/ground_grass.png");
@@ -87,8 +90,26 @@ function create() {
     fontSize: "40px",
     fill: "#0000aa",
   });
+
+  button = this.add
+    .text(200, 400, "遊戲開始", {
+      fontSize: "40px",
+      fill: "#eeeeee",
+      backgroundColor: "#00db00",
+      padding: { x: 15, y: 15 },
+    })
+    .setInteractive()
+    .on("pointerdown", () => {
+      toggleGame();
+      this.physics.resume();
+      button.visible = false;
+    });
+  button.setDepth(1);
 }
 function update() {
+  if (!startGame) {
+    this.physics.pause();
+  }
   if (cursors.left.isDown) {
     player.setVelocityX(-160);
 
@@ -143,6 +164,19 @@ function update() {
   if (!player.body.touching.up) {
     player.body.checkCollision.down = true;
   }
+  if ((player.y > 766 && !player.body.touching.down) || life <= 0) {
+    this.physics.pause();
+    player.setTint(0xff0000);
+    player.setFrame(0);
+    button.setText("重新開始");
+    button.setBackgroundColor("#ee0000");
+    button.on("pointerdown", () => {
+      let black = this.add.rectangle(300, 400, 600, 800, "0x000000");
+      black.setDepth(2);
+      this.scene.restart();
+    });
+    button.visible = true;
+  }
 }
 
 // 扣血機制的callback
@@ -162,4 +196,8 @@ function heal(player, ground) {
   life += life === 10 || ground.isHeal ? 0 : 1;
   // 補完把屬性轉成 true
   ground.isHeal = true;
+}
+
+function toggleGame() {
+  startGame = !startGame;
 }
