@@ -17,10 +17,13 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
-var player, cursors, grounds, ground, spikes, lifeBar;
+var player, cursors, grounds, ground, spikes, lifeBar, scoreText;
 let life = 10;
 // 扣血的 trigger
 let isHurtOnce = false;
+let score = 0;
+// 樓梯漂浮速度
+let speed = 100;
 let groundCollision = {
   none: false,
   up: true,
@@ -79,6 +82,11 @@ function create() {
     aLife.setDepth(1);
     lifeBar.push(aLife);
   }
+  // 加上分數文字在場景內
+  scoreText = this.add.text(470, 35, "B0", {
+    fontSize: "40px",
+    fill: "#0000aa",
+  });
 }
 function update() {
   if (cursors.left.isDown) {
@@ -100,11 +108,16 @@ function update() {
 
     player.setFrame(0);
   }
-  grounds.getChildren().forEach((el) => el.setVelocityY(-100));
+  grounds
+    .getChildren()
+    .forEach((el) => el.setVelocityY(speed * -1 - score * 5));
 
   grounds.getChildren().forEach((el) => {
     if (el.y < 0) {
       el.destroy();
+      // 加上分數機制
+      score++;
+      scoreText.setText("B" + score);
 
       ground = grounds
         .create(
