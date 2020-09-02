@@ -1,6 +1,7 @@
-var board, blocks, ball, props;
+var board, blocks, ball, props, lifeText, lives;
 let speed = 160;
 let direction = 1;
+let life = 3;
 const blockColorMap = [
   "blueBlock",
   "greenBlock",
@@ -82,6 +83,13 @@ const stage = new Phaser.Class({
     cursors = this.input.keyboard.createCursorKeys();
     props = this.physics.add.group();
     this.physics.add.overlap(board, props, getProp, null, this);
+    lifeText = this.add.text(10, 5, "Life: ");
+    lives = this.physics.add.group({
+      key: "ball",
+      repeat: life - 1, // 這邊原先他就會幫你佈置一個，所以我們只需要重複 2 個可以佈置 3 個了
+      setXY: { x: 65, y: 13, stepX: 15 },
+      setScale: { x: 0.5, y: 0.5 },
+    });
   },
   update: function () {
     //   增加 direction 變數來控制方向
@@ -91,6 +99,19 @@ const stage = new Phaser.Class({
       board.setVelocityX(speed * direction);
     } else {
       board.setVelocityX(0);
+    }
+    if (ball.body.y > 600) {
+      // 刪除一顆場景內的生命值
+      lives.getChildren()[lives.getChildren().length - 1].destroy();
+      // 重置球跟板子
+      ball.enableBody(true, 400, 500, true, true);
+      ball.setVelocityY(200);
+      board.enableBody(true, 400, 550, true, true);
+      board.displayWidth = 95;
+      board.setTint(0xffffff);
+      speed = 160;
+      direction = 1;
+      life -= 1;
     }
   },
 });
