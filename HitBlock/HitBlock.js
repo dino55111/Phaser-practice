@@ -1,7 +1,9 @@
-var board, blocks, ball, props, lifeText, lives;
+var board, blocks, ball, props, lifeText, lives, gameStartText, gameOverText;
 let speed = 160;
 let direction = 1;
 let life = 3;
+let isGameStart = false;
+let isGameOver = false;
 const blockColorMap = [
   "blueBlock",
   "greenBlock",
@@ -90,8 +92,23 @@ const stage = new Phaser.Class({
       setXY: { x: 65, y: 13, stepX: 15 },
       setScale: { x: 0.5, y: 0.5 },
     });
+    gameStartText = this.add.text(300, 300, "Press space to start");
+    gameOverText = this.add.text(300, 300, "Game Over", {
+      fontSize: "40px",
+      color: "#ff0000",
+    });
+    gameOverText.visible = false;
+    this.physics.pause();
   },
   update: function () {
+    if (isGameStart && !isGameOver) {
+      this.physics.resume();
+    }
+    if (cursors.space.isDown && !isGameStart && !isGameOver) {
+      isGameStart = true;
+      gameStartText.visible = !isGameStart;
+      ball.setVelocityY(200);
+    }
     //   增加 direction 變數來控制方向
     if (cursors.left.isDown) {
       board.setVelocityX(speed * direction * -1);
@@ -100,12 +117,19 @@ const stage = new Phaser.Class({
     } else {
       board.setVelocityX(0);
     }
+    // 遊戲結束
+    if (life === 0) {
+      isGameStart = false;
+      isGameOver = true;
+      gameStartText.visible = false;
+      gameOverText.visible = true;
+    }
     if (ball.body.y > 600) {
+      this.physics.pause();
       // 刪除一顆場景內的生命值
       lives.getChildren()[lives.getChildren().length - 1].destroy();
       // 重置球跟板子
       ball.enableBody(true, 400, 500, true, true);
-      ball.setVelocityY(200);
       board.enableBody(true, 400, 550, true, true);
       board.displayWidth = 95;
       board.setTint(0xffffff);
