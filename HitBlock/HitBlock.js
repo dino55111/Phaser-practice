@@ -1,4 +1,5 @@
 var board, blocks, ball, props, lifeText, lives, gameStartText, gameOverText;
+var blockBounceSound, fallSound, getPropSound, missionSound;
 let speed = 160;
 let direction = 1;
 let life = 3;
@@ -40,6 +41,11 @@ const stage = new Phaser.Class({
     this.load.image("reverse", "./assets/img/reverse.png");
     this.load.image("speedUp", "./assets/img/speedUp.png");
     this.load.image("speedDown", "./assets/img/speedDown.png");
+    // 載入音樂素材
+    this.load.audio("blockBounce", "./assets/sound/blockBounce.ogg");
+    this.load.audio("fall", "./assets/sound/fall.ogg");
+    this.load.audio("getProp", "./assets/sound/getProp.ogg");
+    this.load.audio("mission", "./assets/sound/mission.ogg");
   },
   create: function () {
     this.make.image({
@@ -99,6 +105,14 @@ const stage = new Phaser.Class({
     });
     gameOverText.visible = false;
     this.physics.pause();
+    // 各種音效
+    blockBounceSound = this.sound.add("blockBounce");
+    fallSound = this.sound.add("fall");
+    getPropSound = this.sound.add("getProp");
+    // 設定讓他可以循環播放
+    missionSound = this.sound.add("mission", { loop: true });
+    // 背景音樂
+    missionSound.play();
   },
   update: function () {
     if (isGameStart && !isGameOver) {
@@ -125,6 +139,8 @@ const stage = new Phaser.Class({
       gameOverText.visible = true;
     }
     if (ball.body.y > 600) {
+      // 球掉落音效
+      fallSound.play();
       this.physics.pause();
       // 刪除一顆場景內的生命值
       lives.getChildren()[lives.getChildren().length - 1].destroy();
@@ -133,14 +149,18 @@ const stage = new Phaser.Class({
       board.enableBody(true, 400, 550, true, true);
       board.displayWidth = 95;
       board.setTint(0xffffff);
+      isGameStart = false;
       speed = 160;
       direction = 1;
       life -= 1;
+      gameStartText.visible = !isGameStart;
     }
   },
 });
 
 function blockBounce(ball, block) {
+  // 打到磚塊的音效
+  blockBounceSound.play();
   // 打到之後讓方塊消失
   block.disableBody(true, true);
   // 是否產生道具
@@ -162,6 +182,8 @@ function boardBounce(ball, board) {
 }
 
 function getProp(board, prop) {
+  // 獲得道具的音效
+  getPropSound.play();
   let feature = prop.texture.key;
   if (feature === "speedUp") {
     // 調整速度
@@ -201,6 +223,9 @@ const config = {
   type: Phaser.AUTO,
   width: 800,
   height: 600,
+  audio: {
+    disableWebAudio: true,
+  },
   physics: {
     default: "arcade",
     arcade: {
