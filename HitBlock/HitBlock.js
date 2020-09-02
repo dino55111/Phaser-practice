@@ -1,4 +1,6 @@
+var board, blocks, ball, props;
 let speed = 160;
+let direction = 1;
 const blockColorMap = [
   "blueBlock",
   "greenBlock",
@@ -7,6 +9,7 @@ const blockColorMap = [
   "redBlock",
   "yellowBlock",
 ];
+const propMap = ["minus", "pause", "reverse", "speedUp", "speedDown", "plus"];
 
 const stage = new Phaser.Class({
   Extends: Phaser.Scene,
@@ -27,6 +30,13 @@ const stage = new Phaser.Class({
     this.load.image("purpleBlock", "./assets/img/purpleBlock.png");
     this.load.image("redBlock", "./assets/img/redBlock.png");
     this.load.image("yellowBlock", "./assets/img/yellowBlock.png");
+    // 各式各樣的道具
+    this.load.image("minus", "./assets/img/minus.png");
+    this.load.image("plus", "./assets/img/plus.png");
+    this.load.image("pause", "./assets/img/pause.png");
+    this.load.image("reverse", "./assets/img/reverse.png");
+    this.load.image("speedUp", "./assets/img/speedUp.png");
+    this.load.image("speedDown", "./assets/img/speedDown.png");
   },
   create: function () {
     this.make.image({
@@ -70,12 +80,15 @@ const stage = new Phaser.Class({
 
     //加上鍵盤控制物件
     cursors = this.input.keyboard.createCursorKeys();
+    props = this.physics.add.group();
+    this.physics.add.overlap(board, props, getProp, null, this);
   },
   update: function () {
+    //   增加 direction 變數來控制方向
     if (cursors.left.isDown) {
-      board.setVelocityX(speed * -1);
+      board.setVelocityX(speed * direction * -1);
     } else if (cursors.right.isDown) {
-      board.setVelocityX(speed);
+      board.setVelocityX(speed * direction);
     } else {
       board.setVelocityX(0);
     }
@@ -83,12 +96,60 @@ const stage = new Phaser.Class({
 });
 
 function blockBounce(ball, block) {
+  // 打到之後讓方塊消失
   block.disableBody(true, true);
+  // 是否產生道具
+  let createSuccess = Math.random() < 0.3;
+  if (createSuccess) {
+    // 隨機產生一種道具
+    let temp = Phaser.Math.Between(0, 5);
+    let prop = props.create(block.x, block.y, propMap[temp]).setScale(0.5);
+    // 改變道具顏色 好的道具是綠色 不好的是紅色
+    prop.setTint(temp < 3 ? 0xff0000 : 0x00ff00);
+    // 給道具一個初始向下掉落的速度
+    prop.setVelocityY(150);
+  }
 }
 
 function boardBounce(ball, board) {
   // 透過計算看他打在板子的哪一邊給他一個向左或向右的速度
   ball.body.setVelocityX((190 * (ball.x - board.x)) / board.width);
+}
+
+function getProp(board, prop) {
+  let feature = prop.texture.key;
+  if (feature === "speedUp") {
+    // 調整速度
+    speed += 70;
+  } else if (feature === "speedDown") {
+    // 調整速度
+    speed -= 50;
+  } else if (feature === "minus") {
+    // 調整寬度
+    board.displayWidth -= 35;
+  } else if (feature === "plus") {
+    // 調整寬度
+    board.displayWidth += 35;
+  } else if (feature === "reverse") {
+    // 改變方向
+    direction = -1;
+    // 調成紫色
+    board.setTint(0xff00ff);
+    setTimeout(() => {
+      direction = 1;
+      board.setTint(0xffffff);
+    }, 3000);
+  } else if (feature === "pause") {
+    // 不給移動
+    direction = 0;
+    // 調成紅色
+    board.setTint(0xff0000);
+    setTimeout(() => {
+      direction = 1;
+      board.setTint(0xffffff);
+    }, 1000);
+  }
+  prop.destroy();
 }
 
 const config = {
