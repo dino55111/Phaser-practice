@@ -214,6 +214,12 @@ const stage = new Phaser.Class({
       life -= 1;
       gameStartText.visible = !isGameStart;
     }
+    if (Math.abs(ball.body.velocity.x) < 50) {
+      ball.body.velocity.x *= 8;
+    }
+    if (Math.abs(ball.body.velocity.y) < 50) {
+      ball.body.velocity.y *= 5;
+    }
   },
 });
 
