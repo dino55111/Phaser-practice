@@ -1,4 +1,49 @@
-var board, blocks, ball, props, lifeText, lives, gameStartText, gameOverText;
+var menuBgMusic;
+const menu = new Phaser.Class({
+  Extends: Phaser.Scene,
+  initialize: function menu() {
+    Phaser.Scene.call(this, { key: "menu" });
+  },
+  preload: function () {
+    this.load.audio("menu", "./assets/sound/menu.ogg");
+    this.load.image("bg", "./assets/img/bg.png");
+  },
+  create: function () {
+    menuBgMusic = this.sound.add("menu", { loop: true, delay: 0 });
+    this.make.image({
+      x: 400,
+      y: 300,
+      key: "bg",
+      scale: { x: 0.75, y: 1 },
+      add: true,
+    });
+    // 加入標題與控制說明
+    this.add.text(250, 200, "打磚塊", { fontSize: "100px", color: "#0584f2" });
+    this.add.text(290, 400, "Click anywhere to start");
+    // 透過點擊進入遊戲場景
+    this.input.once(
+      "pointerdown",
+      function (event) {
+        menuBgMusic.stop();
+        this.scene.start("stage");
+      },
+      this
+    );
+    // 播放背景音樂
+    menuBgMusic.play();
+  },
+  update: function () {},
+});
+
+var board,
+  blocks,
+  ball,
+  props,
+  lifeText,
+  lives,
+  gameStartText,
+  gameOverText,
+  gameOverContent;
 var blockBounceSound, fallSound, getPropSound, missionSound;
 let speed = 160;
 let direction = 1;
@@ -104,6 +149,8 @@ const stage = new Phaser.Class({
       color: "#ff0000",
     });
     gameOverText.visible = false;
+    gameOverContent = this.add.text(265, 350, "Press shift to go back to Menu");
+    gameOverContent.visible = false;
     this.physics.pause();
     // 各種音效
     blockBounceSound = this.sound.add("blockBounce");
@@ -137,6 +184,18 @@ const stage = new Phaser.Class({
       isGameOver = true;
       gameStartText.visible = false;
       gameOverText.visible = true;
+      gameOverContent.visible = true;
+      if (cursors.shift.isDown) {
+        gameStartText.visible = false;
+        gameOverText.visible = false;
+        gameOverContent.visible = false;
+        isGameStart = false;
+        speed = 160;
+        direction = 1;
+        life = 3;
+        isGameOver = false;
+        this.scene.start("menu");
+      }
     }
     if (ball.body.y > 600) {
       // 球掉落音效
@@ -233,6 +292,6 @@ const config = {
       debug: false,
     },
   },
-  scene: [stage],
+  scene: [menu, stage],
 };
 var game = new Phaser.Game(config);
