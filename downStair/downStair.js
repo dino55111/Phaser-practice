@@ -99,7 +99,7 @@ function create() {
       padding: { x: 15, y: 15 },
     })
     .setInteractive()
-    .on("pointerdown", () => {
+    .once("pointerdown", () => {
       toggleGame();
       this.physics.resume();
       button.visible = false;
@@ -173,6 +173,7 @@ function update() {
     button.on("pointerdown", () => {
       let black = this.add.rectangle(300, 400, 600, 800, "0x000000");
       black.setDepth(2);
+      startGame = false;
       this.scene.restart();
     });
     button.visible = true;

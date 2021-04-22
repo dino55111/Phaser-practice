@@ -289,7 +289,7 @@ const config = {
   width: 800,
   height: 600,
   audio: {
-    disableWebAudio: true,
+    disableWebAudio: false,
   },
   physics: {
     default: "arcade",
